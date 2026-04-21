@@ -64,6 +64,16 @@ from modules.deserialization_attacker import DeserializationAttacker
 from modules.web_cache_deception import WebCacheDeceptionProber
 from modules.clickjacking_tester import ClickjackingTester
 from modules.h2c_smuggler import H2CSmuggler
+from modules.saml_attacker import SAMLAttacker
+from modules.webdav_tester import WebDAVTester
+from modules.hpp_tester import HPPTester
+from modules.bypass_403 import Bypass403
+from modules.springboot_actuator import SpringBootActuatorScanner
+from modules.csti_tester import CSTITester
+from modules.path_traversal import PathTraversal
+from modules.open_redirect import OpenRedirect
+from modules.ssi_tester import SSITester
+from modules.host_header_poisoning import HostHeaderPoisoning
 
 from reports.report_generator import ReportGenerator
 from reports.dashboard import DashboardServer
@@ -209,6 +219,16 @@ class GeckoApocalypse:
             'web_cache_deception': WebCacheDeceptionProber,
             'clickjacking_tester': ClickjackingTester,
             'h2c_smuggler': H2CSmuggler,
+            'saml_attacker': SAMLAttacker,
+            'webdav_tester': WebDAVTester,
+            'hpp_tester': HPPTester,
+            'bypass_403': Bypass403,
+            'springboot_actuator': SpringBootActuatorScanner,
+            'csti_tester': CSTITester,
+            'path_traversal': PathTraversal,
+            'open_redirect': OpenRedirect,
+            'ssi_tester': SSITester,
+            'host_header_poisoning': HostHeaderPoisoning,
         }
 
         for name, cls in module_map.items():
@@ -527,7 +547,9 @@ def main():
             'cloud_hunter', 'auth_bypass', 'js_framework', 'business_logic',
             'classic_attacks', 'secret_scanner', 'tech_detector', 'header_analyzer', 'ssl_analyzer',
             'crlf_injector', 'waf_detector', 'nosql_injector', 'ldap_injector',
-            'deserialization_attacker', 'web_cache_deception', 'clickjacking_tester', 'h2c_smuggler'
+            'deserialization_attacker', 'web_cache_deception', 'clickjacking_tester', 'h2c_smuggler',
+            'saml_attacker', 'webdav_tester', 'hpp_tester', 'bypass_403', 'springboot_actuator',
+            'csti_tester', 'path_traversal', 'open_redirect', 'ssi_tester', 'host_header_poisoning'
         ]
         print("Available modules:")
         for m in mods:

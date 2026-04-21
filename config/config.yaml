@@ -53,6 +53,16 @@ modules:
   web_cache_deception: true
   clickjacking_tester: true
   h2c_smuggler: true
+  saml_attacker: true
+  webdav_tester: true
+  hpp_tester: true
+  bypass_403: true
+  springboot_actuator: true
+  csti_tester: true
+  path_traversal: true
+  open_redirect: true
+  ssi_tester: true
+  host_header_poisoning: true
 
 recon:
   subdomain_enumeration: true
