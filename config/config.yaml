@@ -47,6 +47,12 @@ modules:
   ssl_analyzer: true
   crlf_injector: true
   waf_detector: true
+  nosql_injector: true
+  ldap_injector: true
+  deserialization_attacker: true
+  web_cache_deception: true
+  clickjacking_tester: true
+  h2c_smuggler: true
 
 recon:
   subdomain_enumeration: true

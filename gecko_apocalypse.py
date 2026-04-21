@@ -58,6 +58,12 @@ from modules.header_analyzer import HeaderAnalyzer
 from modules.ssl_analyzer import SSLAnalyzer
 from modules.crlf_injector import CRLFInjector
 from modules.waf_detector import WAFDetector
+from modules.nosql_injector import NoSQLInjector
+from modules.ldap_injector import LDAPInjector
+from modules.deserialization_attacker import DeserializationAttacker
+from modules.web_cache_deception import WebCacheDeceptionProber
+from modules.clickjacking_tester import ClickjackingTester
+from modules.h2c_smuggler import H2CSmuggler
 
 from reports.report_generator import ReportGenerator
 from reports.dashboard import DashboardServer
@@ -197,6 +203,12 @@ class GeckoApocalypse:
             'ssl_analyzer': SSLAnalyzer,
             'crlf_injector': CRLFInjector,
             'waf_detector': WAFDetector,
+            'nosql_injector': NoSQLInjector,
+            'ldap_injector': LDAPInjector,
+            'deserialization_attacker': DeserializationAttacker,
+            'web_cache_deception': WebCacheDeceptionProber,
+            'clickjacking_tester': ClickjackingTester,
+            'h2c_smuggler': H2CSmuggler,
         }
 
         for name, cls in module_map.items():
@@ -514,7 +526,8 @@ def main():
             'websocket_testing', 'http_smuggling', 'oauth_exploitation', 'api_fuzzing',
             'cloud_hunter', 'auth_bypass', 'js_framework', 'business_logic',
             'classic_attacks', 'secret_scanner', 'tech_detector', 'header_analyzer', 'ssl_analyzer',
-            'crlf_injector', 'waf_detector'
+            'crlf_injector', 'waf_detector', 'nosql_injector', 'ldap_injector',
+            'deserialization_attacker', 'web_cache_deception', 'clickjacking_tester', 'h2c_smuggler'
         ]
         print("Available modules:")
         for m in mods:
