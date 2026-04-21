@@ -1,0 +1,108 @@
+# GECKO APOCALYPSE ENGINE v10.0 - Configuration
+
+engine:
+  name: "Gecko Apocalypse"
+  version: "10.0"
+  threads: 50
+  timeout: 15
+  max_depth: 5
+  delay_range: [0.1, 0.5]
+  user_agents:
+    - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+    - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
+
+legal:
+  require_authorization: true
+  scope_file: "config/scope.txt"
+  out_of_scope_domains: []
+  max_requests_per_hour: 10000
+  respect_robots_txt: false
+  disclaimer: |
+    LEGAL NOTICE: This tool is for authorized security testing only.
+    Unauthorized access to computer systems is illegal.
+    Use only with explicit written permission.
+
+modules:
+  reconnaissance: true
+  vulnerability_scanner: true
+  graphql_fuzzing: true
+  jwt_manipulation: true
+  ssti_detection: true
+  ssrf_probing: true
+  xxe_attacks: true
+  cors_misconfiguration: true
+  websocket_testing: true
+  http_smuggling: true
+  oauth_exploitation: true
+  api_fuzzing: true
+  cloud_hunter: true
+  auth_bypass: true
+  js_framework: true
+  business_logic: true
+  classic_attacks: true
+  secret_scanner: true
+  tech_detector: true
+  header_analyzer: true
+  ssl_analyzer: true
+  crlf_injector: true
+  waf_detector: true
+
+recon:
+  subdomain_enumeration: true
+  reverse_dns: true
+  asn_mapping: true
+  whois_analysis: true
+  github_leaks: true
+  shodan_integration: false
+  censys_integration: false
+  wayback_machine: true
+  tech_fingerprinting: true
+  breach_correlation: true
+  crt_sh_subdomains: true
+  shodan_api_key: ""
+  censys_api_id: ""
+  censys_api_secret: ""
+  haveibeenpwned_api_key: ""
+  github_token: ""
+
+reporting:
+  formats: ["html", "json", "markdown"]
+  cvss_scoring: true
+  cwe_categorization: true
+  owasp_mapping: true
+  remediation_steps: true
+  executive_summary: true
+  timeline_visualization: true
+  screenshots: false
+  proof_of_concept: true
+
+notifications:
+  slack_webhook: ""
+  discord_webhook: ""
+  telegram_token: ""
+  telegram_chat_id: ""
+  triggers:
+    critical_finding: true
+    scan_complete: true
+    scan_error: false
+
+database:
+  type: "sqlite"
+  sqlite_path: "data/gecko_apocalypse.db"
+
+dashboard:
+  enabled: true
+  host: "127.0.0.1"
+  port: 8888
+  auto_open_browser: false
+  realtime_updates: true
+
+advanced:
+  proxy_enabled: false
+  proxy_host: "127.0.0.1"
+  proxy_port: 8080
+  plugins_enabled: true
+  plugins_directory: "plugins/"
+  resume_scans: true
+  checkpoint_interval: 300

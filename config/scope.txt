@@ -1,0 +1,9 @@
+# Gecko Apocalypse - Scope Definition
+# Lines starting with # are comments
+# Lines starting with ! are exclusions
+# All other lines are in-scope domains
+#
+# Example:
+# example.com
+# *.example.com
+# !out-of-scope.example.com
