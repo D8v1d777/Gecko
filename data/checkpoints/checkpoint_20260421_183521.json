@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-04-21T18:35:21.834820",
+  "target": "https://www.idealcollege.edu.in/home.php",
+  "visited_urls_count": 165,
+  "findings_count": 76,
+  "stats": {
+    "urls_scanned": 165,
+    "vulnerabilities_found": 76,
+    "critical": 0,
+    "high": 15,
+    "medium": 16,
+    "low": 35,
+    "info": 10
+  }
+}

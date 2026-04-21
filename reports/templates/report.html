@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gecko Report</title>
+    <style>
+        body { font-family: Arial; background: #0f172a; color: white; padding: 20px; }
+        .card { background: #1e293b; padding: 15px; margin: 10px 0; border-radius: 10px; }
+        .HIGH { border-left: 5px solid red; }
+        .MEDIUM { border-left: 5px solid orange; }
+        .LOW { border-left: 5px solid green; }
+        h1, h2 { color: #10b981; }
+    </style>
+</head>
+<body>
+
+<h1>Security Report</h1>
+<p>Target: {{target}}</p>
+<p>Date: {{date}}</p>
+
+<h2>Summary</h2>
+<p>Total: {{summary.total}}</p>
+<p>High: {{summary.high}}</p>
+
+<h2>Findings</h2>
+{% for finding in findings %}
+<div class="card {{ finding.severity }}">
+    <h3>{{ finding.title }} ({{ finding.severity }})</h3>
+    <p><strong>Confidence:</strong> {{ finding.confidence }} | <strong>Affected Endpoints:</strong> {{ finding.affected_count }}</p>
+    <p>{{ finding.description }}</p>
+    <p><strong>Recommendation:</strong> {{ finding.recommendation }}</p>
+</div>
+{% endfor %}
+
+</body>
+</html>

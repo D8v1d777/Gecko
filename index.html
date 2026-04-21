@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦎 Gecko Apocalypse Dashboard</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        h1 { margin: 0; color: #10b981; }
+        .stats { display: flex; gap: 20px; }
+        .stat-card {
+            background: #1e293b;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .finding-card {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #10b981;
+            animation: slideIn 0.3s ease-out;
+        }
+        .finding-card.high { border-left-color: #ef4444; }
+        .finding-card.medium { border-left-color: #f59e0b; }
+        .type { font-weight: bold; font-size: 0.9em; text-transform: uppercase; color: #94a3b8; }
+        .issue { font-size: 1.1em; margin: 5px 0; }
+        .data { font-family: monospace; font-size: 0.85em; background: #0f172a; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🦎 GECKO APOCALYPSE</h1>
+        <div class="stats">
+            <div class="stat-card">Findings: <span id="finding-count">0</span></div>
+            <div class="stat-card">Status: <span id="status" style="color: #10b981;">Connected</span></div>
+        </div>
+    </div>
+    <div id="findings-container">
+        <!-- Findings will appear here -->
+    </div>
+
+    <script>
+        const container = document.getElementById('findings-container');
+        const countEl = document.getElementById('finding-count');
+        const statusEl = document.getElementById('status');
+        let count = 0;
+
+        const ws = new WebSocket(`ws://${window.location.host}/ws`);
+
+        ws.onopen = () => {
+            statusEl.textContent = 'Connected';
+            statusEl.style.color = '#10b981';
+        };
+
+        ws.onclose = () => {
+            statusEl.textContent = 'Disconnected';
+            statusEl.style.color = '#ef4444';
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.result && Array.isArray(data.result)) {
+                data.result.forEach(finding => {
+                    addFinding(finding, data.module);
+                });
+            }
+        };
+
+        function addFinding(finding, moduleName) {
+            count++;
+            countEl.textContent = count;
+
+            const card = document.createElement('div');
+            card.className = `finding-card ${finding.severity?.toLowerCase() || 'medium'}`;
+            
+            card.innerHTML = `
+                <div class="type">${moduleName.toUpperCase()} - ${finding.type || 'Finding'}</div>
+                <div class="issue">${finding.issue || finding.subdomain || finding.endpoint || 'Vulnerability Detected'}</div>
+                <div class="data">${JSON.stringify(finding, null, 2)}</div>
+            `;
+
+            container.prepend(card);
+        }
+    </script>
+</body>
+</html>

@@ -1,41 +1,10 @@
-# GECKO APOCALYPSE ENGINE v10.0 - Requirements
-# Core
-aiohttp>=3.9.0
-aiofiles>=23.0.0
-aiodns>=3.1.0
-pyyaml>=6.0.1
-
-# HTTP & Network
-httpx>=0.25.0
-requests>=2.31.0
-dnspython>=2.4.0
-
-# Security & Crypto
-cryptography>=41.0.0
-pyjwt>=2.8.0
-
-# Reconnaissance
-python-whois>=0.8.0
-
-# Reporting
-jinja2>=3.1.2
-fpdf2>=2.7.6
-
-# CLI & UX
-rich>=13.7.0
-
-# Notifications
-discord-webhook>=1.3.0
-slack-sdk>=3.26.0
-
-# Web Dashboard (uses aiohttp)
-# Already included above
-
-# Optional (install separately if needed)
-# shodan>=1.31.0
-# censys>=2.2.0
-# boto3>=1.34.0
-# google-cloud-storage>=2.14.0
-# playwright>=1.40.0
-# scapy>=2.5.0
-# python-telegram-bot>=20.7
+httpx
+fastapi
+uvicorn
+jinja2
+typer
+rich
+pyjwt
+pytest
+flake8
+bandit

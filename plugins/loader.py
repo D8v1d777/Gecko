@@ -1,7 +1,10 @@
 """GECKO APOCALYPSE - Plugin Architecture for extensibility"""
-import importlib, os, sys
+
+import importlib
+import os
+import sys
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 
 class PluginManager:
@@ -30,9 +33,9 @@ class PluginManager:
             try:
                 mod = importlib.import_module(f"plugins.{name}")
                 # Plugin must have a class named Plugin with a scan() method
-                if hasattr(mod, 'Plugin'):
+                if hasattr(mod, "Plugin"):
                     instance = mod.Plugin(session, config, db)
-                    if hasattr(instance, 'scan'):
+                    if hasattr(instance, "scan"):
                         self.plugins[name] = instance
             except Exception as e:
                 print(f"  [!] Failed to load plugin {name}: {e}")

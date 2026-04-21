@@ -1,7 +1,9 @@
 """GECKO APOCALYPSE - Web Dashboard (FastAPI + WebSocket real-time updates)"""
-import asyncio, json
-from typing import Dict, Optional
+
+import asyncio
+import json
 from pathlib import Path
+from typing import Dict, Optional
 
 
 class DashboardServer:
@@ -11,8 +13,8 @@ class DashboardServer:
         self.config = config
         self.db = db
         self.stats = stats
-        self.host = config.get('host', '127.0.0.1')
-        self.port = config.get('port', 8888)
+        self.host = config.get("host", "127.0.0.1")
+        self.port = config.get("port", 8888)
         self.server = None
         self.app = None
 
@@ -20,10 +22,11 @@ class DashboardServer:
         """Start the dashboard server."""
         try:
             from aiohttp import web
+
             self.app = web.Application()
-            self.app.router.add_get('/', self._index)
-            self.app.router.add_get('/api/stats', self._api_stats)
-            self.app.router.add_get('/api/findings', self._api_findings)
+            self.app.router.add_get("/", self._index)
+            self.app.router.add_get("/api/stats", self._api_stats)
+            self.app.router.add_get("/api/findings", self._api_findings)
 
             runner = web.AppRunner(self.app)
             await runner.setup()
@@ -36,6 +39,7 @@ class DashboardServer:
 
     async def _index(self, request):
         from aiohttp import web
+
         html = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>Gecko Apocalypse Dashboard</title>
 <style>
@@ -82,14 +86,16 @@ setInterval(refresh, 3000); window.onload = refresh;
 <div id="findings"><h2 style="color:#38bdf8;margin-bottom:15px">Live Findings</h2>
 <table><tr><th>#</th><th>Severity</th><th>Type</th><th>URL</th><th>Evidence</th></tr>
 <tbody id="tbody"></tbody></table></div></body></html>"""
-        return web.Response(text=html, content_type='text/html')
+        return web.Response(text=html, content_type="text/html")
 
     async def _api_stats(self, request):
         from aiohttp import web
+
         return web.json_response(self.stats)
 
     async def _api_findings(self, request):
         from aiohttp import web
+
         findings = self.db.get_all_findings()
         return web.json_response(findings[:100])
 

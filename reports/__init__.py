@@ -1,1 +1,1 @@
-# Gecko Apocalypse - Reporting Package
+from .generator import ReportGenerator
