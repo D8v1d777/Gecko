@@ -1,0 +1,59 @@
+auth_bypass:
+  # Detection thresholds
+  min_confidence_threshold: 0.7
+  timing_threshold_ms: 200
+  token_min_length: 32
+  cookie_entropy_threshold: 3.5
+
+  # Engagement mode presets
+  engagement_mode: "internal_audit"  # bug_bounty | internal_audit | compliance
+
+  # Test enablement (critical: active tests disabled by default)
+  enable_timing_enum: true
+  enable_active_reset_test: false    # HIGH RISK - enable only with explicit authorization
+  enable_mfa_bypass_active: false
+  enable_captcha_bypass_active: false
+
+  # Stealth settings for bug bounty
+  stealth_mode: false
+  request_delay_ms: 300
+  jitter_pct: 0.4
+  max_auth_attempts: 5  # Prevent account lockout
+
+  # Resilience
+  circuit_breaker_failures: 3
+  circuit_breaker_timeout_sec: 120
+
+  # Compliance mapping
+  compliance_frameworks:
+    - "OWASP-ASVS-V2"
+    - "PCI-DSS-8.3"
+    - "NIST-800-63B"
+    - "SOC2-CC6.1"
+
+  # Workflow automation
+  workflow:
+    jira:
+      enabled: true
+      project_key: "AUTH"
+      severity_mapping:
+        CRITICAL: "Blocker"
+        HIGH: "Critical"
+        MEDIUM: "Major"
+    slack:
+      enabled: true
+      webhook_url: "${VAULT:slack/auth_webhook}"
+      alert_on_severity: ["CRITICAL", "HIGH"]
+
+  # Observability
+  enable_metrics: true
+  structured_logging: true
+  log_level: "INFO"
+
+  # Exclude patterns
+  exclude_patterns:
+    - ".*\\.js$"
+    - ".*\\.css$"
+    - "/health"
+    - "/metrics"
+    - "/api/docs"

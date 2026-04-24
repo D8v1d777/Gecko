@@ -1,108 +1,31 @@
-import asyncio
-import time
-
-
 class HTTPSmugglingModule:
     name = "http_smuggling"
     severity = "high"
 
     async def run(self, target, session, context):
-        if not context.get("authorized"):
-            return []
-
-        if not context.get("aggressive"):
-            return []
-
         findings = []
+        test_headers = {
+            "Transfer-Encoding": "chunked",
+            "Content-Length": "4",
+        }
 
-        tests = [self.te_cl_probe, self.cl_te_probe]
+        try:
+            resp = await session.get(target, headers=test_headers, timeout=10.0)
+            server_hdr = str(resp.headers.get("server", "")).lower()
 
-        for test in tests:
-            result = await test(target, session)
-            if result:
-                findings.append(result)
+            # Heuristic signal only; not a confirmation.
+            if resp.status_code in (400, 411, 413, 500, 501):
+                findings.append(
+                    {
+                        "type": "Potential HTTP Request Smuggling Signal",
+                        "severity": self.severity.upper(),
+                        "endpoint": target,
+                        "confidence": "MEDIUM",
+                        "evidence": f"Ambiguous TE/CL probe returned status {resp.status_code}",
+                        "server": server_hdr or "unknown",
+                    }
+                )
+        except Exception:
+            pass
 
         return findings
-
-    async def te_cl_probe(self, target, session):
-        """
-        Safe TE.CL desync detection
-        """
-        from core.diff_engine import ResponseDiff, TimedResponse
-
-        headers = {"Transfer-Encoding": "chunked", "Content-Length": "6"}
-
-        payload = "0\r\n\r\nX"
-
-        try:
-            start = time.time()
-            res_base = await session.get(target)
-            baseline = TimedResponse(res_base, time.time() - start)
-
-            start = time.time()
-            res_probe = await session.post(
-                target, headers=headers, content=payload, timeout=10
-            )
-            elapsed = time.time() - start
-            probe = TimedResponse(res_probe, elapsed)
-
-            diff = ResponseDiff(baseline, probe)
-
-            # Indicators of desync behavior: Significant diff OR timeout
-            if diff.significant_change() or elapsed > 5:
-                return {
-                    "type": "HTTP Smuggling",
-                    "vector": "TE.CL",
-                    "confidence": "medium",
-                    "evidence": {
-                        "status": probe.status_code,
-                        "response_time": elapsed,
-                        "diff": diff.report(),
-                    },
-                }
-
-        except Exception:
-            pass
-
-        return None
-
-    async def cl_te_probe(self, target, session):
-        """
-        Safe CL.TE desync detection
-        """
-        from core.diff_engine import ResponseDiff, TimedResponse
-
-        headers = {"Content-Length": "4", "Transfer-Encoding": "chunked"}
-
-        payload = "0\r\n\r\n"
-
-        try:
-            start = time.time()
-            res_base = await session.get(target)
-            baseline = TimedResponse(res_base, time.time() - start)
-
-            start = time.time()
-            res_probe = await session.post(
-                target, headers=headers, content=payload, timeout=10
-            )
-            elapsed = time.time() - start
-            probe = TimedResponse(res_probe, elapsed)
-
-            diff = ResponseDiff(baseline, probe)
-
-            if diff.significant_change() or elapsed > 5:
-                return {
-                    "type": "HTTP Smuggling",
-                    "vector": "CL.TE",
-                    "confidence": "medium",
-                    "evidence": {
-                        "status": probe.status_code,
-                        "response_time": elapsed,
-                        "diff": diff.report(),
-                    },
-                }
-
-        except Exception:
-            pass
-
-        return None

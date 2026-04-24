@@ -1,0 +1,75 @@
+jwt_module:
+  # Detection thresholds
+  min_confidence_threshold: 0.7
+  timing_threshold_ms: 500
+  min_secret_entropy: 4.0
+
+  # Engagement mode presets
+  engagement_mode: "internal_audit"  # bug_bounty | internal_audit | compliance
+
+  # Test enablement (critical: disable aggressive tests for bug bounty)
+  enable_alg_none_test: true
+  enable_alg_confusion_test: true
+  enable_weak_secret_test: true
+  enable_kid_injection_test: true
+  enable_jku_injection_test: false  # HIGH RISK - external URL fetch
+  enable_claim_manipulation_test: true
+  enable_expiration_bypass_test: true
+  enable_token_replay_test: false  # HIGH RISK - may cause state changes
+
+  # Brute-force configuration
+  secret_wordlist_path: null  # Optional: "./wordlists/jwt-secrets.txt"
+  max_secret_attempts: 1000
+  secret_test_timeout_sec: 30
+
+  # Rate limiting & stealth
+  stealth_mode: false
+  request_delay_ms: 300
+  jitter_pct: 0.4
+  max_concurrent: 5
+  rate_limit_per_second: 2
+  max_requests_per_domain: 100
+
+  # Resilience
+  max_retries: 2
+  retry_backoff_base: 1.0
+  retry_backoff_max: 5.0
+  circuit_breaker_failures: 5
+  circuit_breaker_timeout_sec: 120
+
+  # Response caching
+  response_cache_ttl_sec: 60
+
+  # Compliance mapping
+  compliance_frameworks:
+    - "OWASP-ASVS-V4"
+    - "PCI-DSS-8.3"
+    - "NIST-800-63B-5.1.1"
+    - "SOC2-CC6.1"
+
+  # Workflow automation
+  workflow:
+    jira:
+      enabled: true
+      project_key: "AUTH"
+      severity_mapping:
+        CRITICAL: "Blocker"
+        HIGH: "Critical"
+        MEDIUM: "Major"
+    slack:
+      enabled: true
+      webhook_url: "${VAULT:slack/jwt_webhook}"
+      alert_on_severity: ["CRITICAL", "HIGH"]
+
+  # Observability
+  enable_metrics: true
+  structured_logging: true
+  log_level: "INFO"
+
+  # Exclude patterns
+  exclude_patterns:
+    - ".*\\.js$"
+    - ".*\\.css$"
+    - "/health"
+    - "/metrics"
+    - "/api/docs"

@@ -1,0 +1,27 @@
+# Custom sensitive paths for organization-specific resources
+# Format: one path per line, # for comments
+
+# Internal admin tools
+/internal-admin/
+/ops-dashboard/
+/monitoring/grafana/
+
+# API endpoints with sensitive data
+/api/v1/internal/users
+/api/v1/admin/config
+/graphql?query={__schema{types{name}}}
+
+# Backup locations (customize for your infrastructure)
+/backups/daily/
+/snapshots/latest.tar.gz
+/exports/user-data.csv
+
+# Framework-specific (add based on your stack)
+/django-admin/
+/flask-debugger/
+/node_modules/.bin/
+
+# Cloud-specific (if using multi-cloud)
+/aws/credentials
+/gcp/service-account.json
+/azure/management.crt

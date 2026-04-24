@@ -25,6 +25,8 @@ def scan(
     authorized: bool = typer.Option(
         False, "--authorized", help="Confirm authorization"
     ),
+    header: list[str] = typer.Option(None, help="Custom headers (e.g. 'Authorization: Bearer token')"),
+    crawl_depth: int = typer.Option(2, help="Depth for the web crawler"),
 ):
     """
     Run a high-fidelity security scan against a target
@@ -47,6 +49,13 @@ def scan(
 
     selected_module_names = modules.split(",") if modules else None
 
+    headers_dict = {}
+    if header:
+        for h in header:
+            if ":" in h:
+                k, v = h.split(":", 1)
+                headers_dict[k.strip()] = v.strip()
+
     # Logic to show progress while running async modules
     # In a real tool, we might want to update the progress as each module finishes
     # For now, we'll use a Spinner
@@ -60,7 +69,7 @@ def scan(
         )
 
         findings = asyncio.run(
-            run_scan(target, selected_modules=selected_module_names, threads=threads)
+            run_scan(target, selected_modules=selected_module_names, threads=threads, headers=headers_dict, crawl_depth=crawl_depth)
         )
 
     display_results(findings)

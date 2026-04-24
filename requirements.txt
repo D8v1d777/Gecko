@@ -8,3 +8,4 @@ pyjwt
 pytest
 flake8
 bandit
+beautifulsoup4

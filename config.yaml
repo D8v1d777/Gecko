@@ -249,3 +249,94 @@ advanced:
   distributed_mode: false
   master_node: true
   worker_nodes: []
+
+# ============================================================================
+# GECKO APOCALYPSE - ENTERPRISE INTEGRATION CONFIG
+# ============================================================================
+
+# Core settings
+http_smuggling:
+  enable_correlation: true
+  require_consensus: false  # Only report findings confirmed by >=2 tools
+  workflow_threshold: 0.85  # Min confidence for workflow actions
+
+# Burp Suite Integration
+burp:
+  enabled: true
+  api_url: "http://127.0.0.1:1337/v0.1"
+  api_key: "${VAULT:burp/api_key}"  # Vault secret reference
+  use_extender_api: true  # Jep bridge for real-time streaming
+  collaborator_id: "${VAULT:portswigger/collab_id}"
+  min_import_confidence: 0.6
+
+# Nuclei Integration
+nuclei:
+  enabled: true
+  nuclei_binary: "/usr/local/bin/nuclei"
+  template_dir: "./gecko_nuclei_templates"
+  use_api: false  # Use Nuclei Cloud API if true
+  cloud_api_key: "${VAULT:nuclei/cloud_key}"
+  stealth_mode: true
+  rate_limit: 15  # Requests/sec
+  request_delay_ms: 100
+
+# Enterprise Scanner Plugins
+enterprise_scanners:
+  checkmarx:
+    enabled: true
+    scanner_name: "checkmarx_dast"
+    adapter_class: "gecko.adapters.CheckmarxDASTAdapter"
+    api_endpoint: "https://cx.example.com/api"
+    api_key: "${VAULT:checkmarx/api_key}"
+    import_file_path: "/data/checkmarx/export.json"  # Fallback
+  snyk:
+    enabled: false  # Example disabled scanner
+    scanner_name: "snyk_container"
+    adapter_class: "gecko.adapters.SnykContainerAdapter"
+
+# Workflow Automation
+workflow:
+  jira:
+    enabled: true
+    project_key: "SEC"
+    issue_type: "Vulnerability"
+    api_url: "https://jira.example.com/rest/api/3"
+    auth_token: "${VAULT:jira/api_token}"
+  slack:
+    enabled: true
+    webhook_url: "${VAULT:slack/webhook}"
+    gecko_dashboard_url: "https://gecko.internal"
+  auto_pr:
+    enabled: false  # Enable with caution
+    repo_mapping:
+      "example.com": "github.com/org/example-app"
+    auto_fixable_types:
+      - "Host Header Injection"
+
+# Observability & Compliance
+observability:
+  enable_metrics: true
+  prometheus_port: 9090
+  structured_logging: true
+  compliance_tags:
+    - "PCI-DSS-6.5.10"
+    - "OWASP-Top-10-A05:2021"
+    - "NIST-800-53-SC-8"
+
+# ============================================================================
+# NETWORK & WEB CORRELATION MODULE
+# ============================================================================
+network_web_correlator:
+  min_confidence_threshold: 0.7
+  enable_raw_packet_tests: true
+  enable_dns_analysis: true
+  max_dns_queries: 20
+  max_packet_tests: 10
+  packet_timeout_sec: 5
+  engagement_mode: "internal_audit"
+  stealth_mode: false
+  request_delay_ms: 200
+  jitter_pct: 0.3
+  rate_limit_per_second: 5
+  compliance_frameworks: ["OWASP-ASVS", "PCI-DSS-6.5", "NIST-800-53"]
+  exclude_patterns: ["\\.js$", "\\.css$", "/health", "/metrics"]

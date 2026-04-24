@@ -1,0 +1,74 @@
+vuln_scanner:
+  # Detection thresholds
+  min_confidence_threshold: 0.7
+  min_content_length: 50
+  max_response_size_kb: 512
+  entropy_threshold: 3.5
+
+  # Engagement mode presets
+  engagement_mode: "internal_audit"  # bug_bounty | internal_audit | compliance
+
+  # Rate limiting & stealth
+  stealth_mode: false
+  request_delay_ms: 100
+  jitter_pct: 0.3
+  max_concurrent: 20
+  rate_limit_per_second: 10
+  max_requests_per_domain: 500
+
+  # Wordlist configuration
+  wordlist_path: null  # Optional: "./wordlists/sensitive-paths.txt"
+  enable_tech_stack_expansion: true
+  enable_cloud_probing: true
+
+  # Content validation
+  enable_content_validation: true
+  enable_entropy_check: true
+  enable_pattern_matching: true
+
+  # Resilience
+  max_retries: 2
+  retry_backoff_base: 1.0
+  retry_backoff_max: 5.0
+  circuit_breaker_failures: 10
+  circuit_breaker_timeout_sec: 60
+
+  # Response caching
+  response_cache_ttl_sec: 300
+
+  # Compliance mapping
+  compliance_frameworks:
+    - "OWASP-ASVS-V4"
+    - "PCI-DSS-6.5.10"
+    - "NIST-800-53-SC-28"
+    - "SOC2-CC6.1"
+
+  # Workflow automation
+  workflow:
+    jira:
+      enabled: true
+      project_key: "INFOSEC"
+      severity_mapping:
+        CRITICAL: "Blocker"
+        HIGH: "Critical"
+        MEDIUM: "Major"
+    slack:
+      enabled: true
+      webhook_url: "${VAULT:slack/scan_webhook}"
+      alert_on_severity: ["CRITICAL", "HIGH"]
+
+  # Observability
+  enable_metrics: true
+  structured_logging: true
+  log_level: "INFO"
+
+  # Exclude patterns
+  exclude_patterns:
+    - ".*\\.js$"
+    - ".*\\.css$"
+    - ".*\\.png$"
+    - ".*\\.jpg$"
+    - ".*\\.gif$"
+    - "/health"
+    - "/metrics"
+    - "/favicon.ico"

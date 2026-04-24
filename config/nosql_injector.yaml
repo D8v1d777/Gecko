@@ -1,0 +1,72 @@
+nosql_injector:
+  # Detection thresholds
+  min_confidence_threshold: 0.7
+  timing_threshold_ms: 1000
+  length_diff_threshold: 200
+  statistical_significance: 0.95
+
+  # Engagement mode presets
+  engagement_mode: "internal_audit"  # bug_bounty | internal_audit | compliance
+
+  # Test enablement (critical: disable aggressive tests for bug bounty)
+  enable_blind_tests: true
+  enable_time_based_tests: false    # HIGH RISK - enable only with explicit authorization
+  enable_error_based_tests: true
+  enable_auth_bypass_tests: true
+
+  # Rate limiting & stealth
+  stealth_mode: false
+  request_delay_ms: 200
+  jitter_pct: 0.4
+  max_concurrent: 10
+  rate_limit_per_second: 5
+  max_requests_per_domain: 200
+
+  # Payload configuration
+  payload_encoding_variants: true
+  auto_fingerprint_database: true
+  fingerprint_confidence_threshold: 0.6
+
+  # Resilience
+  max_retries: 2
+  retry_backoff_base: 1.0
+  retry_backoff_max: 5.0
+  circuit_breaker_failures: 5
+  circuit_breaker_timeout_sec: 120
+
+  # Response caching
+  response_cache_ttl_sec: 60
+
+  # Compliance mapping
+  compliance_frameworks:
+    - "OWASP-ASVS-V4"
+    - "PCI-DSS-6.5.1"
+    - "NIST-800-53-SI-10"
+    - "SOC2-CC6.1"
+
+  # Workflow automation
+  workflow:
+    jira:
+      enabled: true
+      project_key: "INJ"
+      severity_mapping:
+        CRITICAL: "Blocker"
+        HIGH: "Critical"
+        MEDIUM: "Major"
+    slack:
+      enabled: true
+      webhook_url: "${VAULT:slack/nosql_webhook}"
+      alert_on_severity: ["CRITICAL", "HIGH"]
+
+  # Observability
+  enable_metrics: true
+  structured_logging: true
+  log_level: "INFO"
+
+  # Exclude patterns
+  exclude_patterns:
+    - ".*\\.js$"
+    - ".*\\.css$"
+    - "/health"
+    - "/metrics"
+    - "/api/docs"
