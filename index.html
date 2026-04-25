@@ -3,105 +3,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🦎 Gecko Apocalypse Dashboard</title>
+    <title>🦎 Gecko Apocalypse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
     <style>
+        :root {
+            --primary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #050505;
+        }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
             margin: 0;
-            padding: 20px;
+            overflow: hidden;
+            background-color: var(--bg);
+            font-family: 'Outfit', sans-serif;
+            color: #fff;
+        }
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none; /* Let user interact with 3D background */
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            box-sizing: border-box;
         }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #334155;
             padding-bottom: 20px;
-            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        h1 { margin: 0; color: #10b981; }
-        .stats { display: flex; gap: 20px; }
-        .stat-card {
-            background: #1e293b;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: 1px solid #334155;
+        h1 {
+            margin: 0;
+            font-weight: 800;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+            pointer-events: auto;
         }
-        .finding-card {
-            background: #1e293b;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 4px solid #10b981;
-            animation: slideIn 0.3s ease-out;
+        .stats {
+            display: flex;
+            gap: 20px;
+            pointer-events: auto;
         }
-        .finding-card.high { border-left-color: #ef4444; }
-        .finding-card.medium { border-left-color: #f59e0b; }
-        .type { font-weight: bold; font-size: 0.9em; text-transform: uppercase; color: #94a3b8; }
-        .issue { font-size: 1.1em; margin: 5px 0; }
-        .data { font-family: monospace; font-size: 0.85em; background: #0f172a; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .glass-panel {
+            background: rgba(20, 25, 30, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 15px 25px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+        }
+        #findings-wrapper {
+            flex-grow: 1;
+            margin-top: 30px;
+            overflow-y: auto;
+            pointer-events: auto;
+            padding-right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 600px;
+        }
+        /* Custom Scrollbar */
+        #findings-wrapper::-webkit-scrollbar { width: 6px; }
+        #findings-wrapper::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        #findings-wrapper::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
         
+        .finding-card {
+            background: rgba(15, 20, 25, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 20px;
+            animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .finding-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.03));
+            pointer-events: none;
+        }
+        .finding-card.high { border-left-color: var(--danger); }
+        .finding-card.critical { border-left-color: var(--danger); }
+        .finding-card.medium { border-left-color: var(--warning); }
+        
+        .type {
+            font-weight: 800;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        .issue {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+        }
+        .data {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 12px;
+            border-radius: 6px;
+            color: #a78bfa;
+            word-break: break-all;
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
         @keyframes slideIn {
-            from { transform: translateX(-20px); opacity: 0; }
+            from { transform: translateX(-50px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🦎 GECKO APOCALYPSE</h1>
-        <div class="stats">
-            <div class="stat-card">Findings: <span id="finding-count">0</span></div>
-            <div class="stat-card">Status: <span id="status" style="color: #10b981;">Connected</span></div>
+    <div id="canvas-container"></div>
+    <div id="ui-layer">
+        <div class="header">
+            <h1 title="Click to trigger a test finding!">🦎 GECKO CORE</h1>
+            <div class="stats">
+                <div class="glass-panel">
+                    <div class="stat-label">Findings Detected</div>
+                    <div class="stat-value" id="finding-count" style="color: var(--primary);">0</div>
+                </div>
+                <div class="glass-panel">
+                    <div class="stat-label">System Status</div>
+                    <div class="stat-value" id="status" style="color: var(--primary);">Connecting...</div>
+                </div>
+            </div>
         </div>
-    </div>
-    <div id="findings-container">
-        <!-- Findings will appear here -->
+        <div id="findings-wrapper">
+            <!-- Findings populated via JS -->
+        </div>
     </div>
 
     <script>
-        const container = document.getElementById('findings-container');
+        // --- 1. Three.js Setup: The Liquid Brain ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        
+        // Camera
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.z = 8;
+
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const pointLight1 = new THREE.PointLight(0x10b981, 2, 50); // Emerald Green
+        pointLight1.position.set(5, 5, 5);
+        scene.add(pointLight1);
+
+        const pointLight2 = new THREE.PointLight(0x3b82f6, 2, 50); // Blue
+        pointLight2.position.set(-5, -5, 2);
+        scene.add(pointLight2);
+
+        // Object (The Brain/Liquid Sphere)
+        const geometry = new THREE.IcosahedronGeometry(2, 64);
+        
+        // Save original vertices for displacement
+        const basePosition = geometry.attributes.position.clone();
+        geometry.setAttribute('basePosition', basePosition);
+
+        const material = new THREE.MeshStandardMaterial({
+            color: 0x052e16, // Dark green base
+            roughness: 0.2,
+            metalness: 0.8,
+            wireframe: false,
+        });
+
+        const blob = new THREE.Mesh(geometry, material);
+        scene.add(blob);
+
+        // Simplex Noise
+        const simplex = new SimplexNoise();
+
+        // Animation state variables
+        let time = 0;
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+        
+        // State for reacting to findings
+        let alertSpikeIntensity = 0;
+
+        // Mouse tracking for interaction
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - window.innerWidth / 2) * 0.002;
+            mouseY = (event.clientY - window.innerHeight / 2) * 0.002;
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.005;
+
+            // Smoothly interpolate mouse movement
+            targetX = mouseX * 0.5;
+            targetY = mouseY * 0.5;
+            blob.rotation.y += 0.05 * (targetX - blob.rotation.y);
+            blob.rotation.x += 0.05 * (targetY - blob.rotation.x);
+            
+            // Subtly rotate the whole object over time
+            blob.rotation.z += 0.001;
+
+            // Decay the alert spike intensity back to 0
+            alertSpikeIntensity = THREE.MathUtils.lerp(alertSpikeIntensity, 0, 0.03);
+            
+            // Interpolate colors back to normal over time
+            material.color.lerp(new THREE.Color(0x052e16), 0.02);
+            pointLight1.color.lerp(new THREE.Color(0x10b981), 0.02);
+
+            // Displace vertices using Perlin noise
+            const positionAttribute = geometry.attributes.position;
+            const basePosAttribute = geometry.attributes.basePosition;
+            const vertex = new THREE.Vector3();
+
+            for (let i = 0; i < positionAttribute.count; i++) {
+                vertex.fromBufferAttribute(basePosAttribute, i);
+                
+                const noiseVal = simplex.noise3D(
+                    vertex.x * 0.5 + time,
+                    vertex.y * 0.5,
+                    vertex.z * 0.5 + time
+                );
+
+                const displacement = (0.2 + alertSpikeIntensity) * noiseVal;
+                
+                vertex.addScaledVector(vertex.clone().normalize(), displacement);
+                positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+            }
+
+            positionAttribute.needsUpdate = true;
+            geometry.computeVertexNormals();
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // --- 2. Dashboard UI & WebSocket Logic ---
+        const findingsWrapper = document.getElementById('findings-wrapper');
         const countEl = document.getElementById('finding-count');
         const statusEl = document.getElementById('status');
         let count = 0;
 
+        // Visual Reaction Function for the Brain
+        function triggerBrainReaction(severity) {
+            alertSpikeIntensity = 1.0; 
+            
+            if (severity === 'high' || severity === 'critical') {
+                material.color.setHex(0x450a0a); // Dark red
+                pointLight1.color.setHex(0xef4444); // Bright red light
+            } else if (severity === 'medium') {
+                material.color.setHex(0x451a03); // Dark orange
+                pointLight1.color.setHex(0xf59e0b); // Orange light
+            } else {
+                pointLight1.intensity = 4;
+                setTimeout(() => { pointLight1.intensity = 2; }, 500);
+            }
+        }
+
+        // WebSocket Connection
         const ws = new WebSocket(`ws://${window.location.host}/ws`);
 
         ws.onopen = () => {
-            statusEl.textContent = 'Connected';
-            statusEl.style.color = '#10b981';
+            statusEl.textContent = 'Active & Scanning';
+            statusEl.style.color = 'var(--primary)';
         };
 
         ws.onclose = () => {
-            statusEl.textContent = 'Disconnected';
-            statusEl.style.color = '#ef4444';
+            statusEl.textContent = 'Connection Lost';
+            statusEl.style.color = 'var(--danger)';
+            triggerBrainReaction('high'); // Flash red on disconnect
         };
 
         ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.result && Array.isArray(data.result)) {
-                data.result.forEach(finding => {
-                    addFinding(finding, data.module);
-                });
+            try {
+                const data = JSON.parse(event.data);
+                if (data.result && Array.isArray(data.result)) {
+                    data.result.forEach(finding => {
+                        addFinding(finding, data.module || 'Unknown Module');
+                    });
+                }
+            } catch (e) {
+                console.error("Error parsing websocket message", e);
             }
         };
 
         function addFinding(finding, moduleName) {
             count++;
             countEl.textContent = count;
+            
+            const severity = finding.severity?.toLowerCase() || 'medium';
+            triggerBrainReaction(severity);
 
             const card = document.createElement('div');
-            card.className = `finding-card ${finding.severity?.toLowerCase() || 'medium'}`;
+            card.className = `finding-card ${severity}`;
             
+            const title = finding.issue || finding.subdomain || finding.endpoint || 'Vulnerability Detected';
+            const details = JSON.stringify(finding, null, 2);
+
             card.innerHTML = `
-                <div class="type">${moduleName.toUpperCase()} - ${finding.type || 'Finding'}</div>
-                <div class="issue">${finding.issue || finding.subdomain || finding.endpoint || 'Vulnerability Detected'}</div>
-                <div class="data">${JSON.stringify(finding, null, 2)}</div>
+                <div class="type">${moduleName} / ${finding.type || 'Finding'}</div>
+                <div class="issue">${title}</div>
+                <pre class="data">${details}</pre>
             `;
 
-            container.prepend(card);
+            findingsWrapper.prepend(card);
+            
+            if (findingsWrapper.children.length > 50) {
+                findingsWrapper.removeChild(findingsWrapper.lastChild);
+            }
         }
+        
+        // Demo mode: Simulate findings if clicking the logo
+        document.querySelector('h1').addEventListener('click', () => {
+            const severities = ['high', 'critical', 'medium', 'low'];
+            const randomSev = severities[Math.floor(Math.random() * severities.length)];
+            addFinding({
+                type: 'Simulated Finding',
+                issue: `Test Vulnerability (${randomSev})`,
+                severity: randomSev,
+                timestamp: new Date().toISOString()
+            }, 'Demo Module');
+        });
+
     </script>
 </body>
 </html>

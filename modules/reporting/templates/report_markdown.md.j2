@@ -1,0 +1,38 @@
+# Security Assessment Report: {{ metadata.target }}
+
+- **Report ID:** {{ metadata.scan_id }}
+- **Date:** {{ generated_at }}
+- **Risk Level:** {{ risk_level }}
+
+## Executive Summary
+{{ executive_summary }}
+
+## Findings Summary
+| Severity | Count |
+| :--- | :--- |
+| Critical | {{ stats.by_severity.critical|default(0) }} |
+| High | {{ stats.by_severity.high|default(0) }} |
+| Medium | {{ stats.by_severity.medium|default(0) }} |
+| Low | {{ stats.by_severity.low|default(0) }} |
+| Info | {{ stats.by_severity.info|default(0) }} |
+
+## Technical Findings
+{% for finding in findings %}
+### [{{ finding.severity.value|upper }}] {{ finding.title }}
+- **URL:** {{ finding.url }}
+- **CWE:** {{ finding.cwe_id|default('N/A') }}
+- **OWASP:** {{ finding.owasp_category|default('N/A') }}
+
+#### Description
+{{ finding.description }}
+
+#### Evidence
+```
+{{ finding.evidence }}
+```
+
+#### Remediation
+{{ finding.remediation }}
+
+---
+{% endfor %}

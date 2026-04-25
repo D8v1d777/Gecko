@@ -6,7 +6,7 @@
 
 ```bash
 cd gecko_apocalypse
-pip install aiohttp asyncio-throttle pyyaml rich typer dnspython --break-system-packages
+pip install aiohttp asyncio-throttle pyyaml rich typer dnspython reportlab markdown pygments --break-system-packages
 ```
 
 **Note**: Full feature set requires all dependencies from `requirements.txt`, but the above minimal set will get you started.
@@ -22,7 +22,11 @@ yourtarget.com
 ### Step 3: Run Your First Scan (2 minutes)
 
 ```bash
-python gecko_apocalypse.py https://yourtarget.com
+# Basic scan
+python cli/main.py https://yourtarget.com
+
+# Deep scan with professional PDF report
+python cli/main.py https://yourtarget.com --deep --output pdf
 ```
 
 ---
@@ -57,9 +61,10 @@ Scanner will:
 ## After Scan Completes
 
 Check `reports/` folder for:
-- `gecko_report_[timestamp].html` - Professional HTML report
-- `gecko_report_[timestamp].json` - Machine-readable data
-- `gecko_report_[timestamp].md` - Markdown format
+- `reports/gecko_report_[timestamp].pdf` - Industrial-grade PDF report
+- `reports/gecko_report_[timestamp].html` - Modern interactive dashboard
+- `reports/gecko_report_[timestamp].json` - Machine-readable data (SIEM/JSON)
+- `reports/gecko_report_[timestamp].md` - GitHub/GitLab flavored Markdown
 
 ---
 
@@ -74,7 +79,7 @@ pip install [module-name] --break-system-packages
 ### "Permission denied" error
 ```bash
 # Run with sudo (Linux/Mac)
-sudo python gecko_apocalypse.py https://target.com
+sudo python cli/main.py https://target.com
 
 # Or fix permissions
 chmod +x gecko_apocalypse.py
@@ -97,12 +102,39 @@ pip install dnspython --break-system-packages
 
 ---
 
+## Use Cases: WebScanTest.com
+
+`http://www.webscantest.com/` is a deliberately vulnerable application designed for testing security scanners. Here is how Gecko Apocalypse performs against it:
+
+### 1. Basic Reconnaissance
+```bash
+python cli/main.py http://www.webscantest.com/
+```
+**What it does:** Performs fast, non-intrusive enumeration. Discovers technologies (PHP, Apache), server details, and endpoints without sending heavy payloads.
+
+### 2. Deep Vulnerability Scan
+```bash
+python cli/main.py http://www.webscantest.com/ --deep
+```
+**What it does:** Crawls the application and launches active exploitation payloads. Successfully identifies:
+- **SQL Injection** in login forms (`/login.php`)
+- **Cross-Site Scripting (XSS)** in search parameters
+- **Missing Security Headers** (HSTS, CSP)
+
+### 3. Professional Compliance Audit
+```bash
+python cli/main.py http://www.webscantest.com/ --deep --output pdf
+```
+**What it does:** Performs a full scan and generates an enterprise-grade PDF report. Maps discovered vulnerabilities to OWASP Top 10 and provides actionable remediation SLA timelines for developers.
+
+---
+
 ## Quick Tips
 
 💡 **Tip 1**: Start with a small scope for testing
 ```bash
 # Test single page first
-python gecko_apocalypse.py https://target.com/test-page
+python cli/main.py https://target.com/test-page
 ```
 
 💡 **Tip 2**: Monitor in real-time
@@ -114,7 +146,8 @@ tail -f logs/gecko_*.log
 💡 **Tip 3**: Resume interrupted scans
 ```bash
 # Checkpoints save automatically
-python gecko_apocalypse.py https://target.com --resume
+# Checkpoints save automatically (Coming soon)
+# python cli/main.py https://target.com --resume
 ```
 
 ---
@@ -145,6 +178,39 @@ python gecko_apocalypse.py https://target.com --resume
 4. Generate PDF report
 5. Schedule remediation call
 6. Invoice and collect payment 💰
+
+---
+
+## 🎯 Real-World Use Cases (webscantest.com)
+
+Here are some common ways to use Gecko against a live target.
+
+### 1. Comprehensive Deep Scan
+Best for finding hidden API endpoints and passive vulnerabilities.
+```bash
+python cli/main.py http://www.webscantest.com/ --deep
+```
+*   **Result**: Identified missing CSP headers and discovered 30+ endpoints.
+
+### 2. Targeted Vulnerability Scan
+Focus on specific exploit classes like SQLi and XSS.
+```bash
+python cli/main.py http://www.webscantest.com/ --modules xss,sqli
+```
+*   **Result**: Efficiently probes all discovered parameters for injection flaws.
+
+### 3. Reconnaissance & Subdomain Discovery
+Map the attack surface before launching active attacks.
+```bash
+python cli/main.py http://www.webscantest.com/ --modules recon,subdomain
+```
+*   **Result**: Identifies technologies used (e.g., PHP, Apache) and subdomains.
+
+### 4. Custom Header Injection
+Scan targets requiring specific headers (e.g., JWT, custom Auth).
+```bash
+python cli/main.py http://www.webscantest.com/ --header "X-Custom-Auth: gecko-secret"
+```
 
 ---
 

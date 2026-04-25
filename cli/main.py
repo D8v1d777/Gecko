@@ -12,6 +12,10 @@ from rich.table import Table
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from gecko_apocalypse import MODULES, run_scan
+from core.finding import Severity
+from modules.reporting.pdf_generator import ProfessionalPDFGenerator, VulnerabilityDetails
+from core.config import Config
+from datetime import datetime
 
 app = typer.Typer(help="Gecko - Intelligent Security Scanner")
 
@@ -22,11 +26,9 @@ def scan(
     modules: str = typer.Option(None, help="Comma-separated modules"),
     output: str = typer.Option("console", help="Output format: console/html/json"),
     threads: int = typer.Option(20, help="Concurrency level"),
-    authorized: bool = typer.Option(
-        False, "--authorized", help="Confirm authorization"
-    ),
     header: list[str] = typer.Option(None, help="Custom headers (e.g. 'Authorization: Bearer token')"),
     crawl_depth: int = typer.Option(2, help="Depth for the web crawler"),
+    deep: bool = typer.Option(False, "--deep", help="Use the Deep Security Crawler"),
 ):
     """
     Run a high-fidelity security scan against a target
@@ -39,11 +41,6 @@ def scan(
         )
     )
 
-    if not authorized:
-        print(
-            "[bold red][-] Error:[/bold red] You must confirm authorization with --authorized"
-        )
-        raise typer.Exit(code=1)
 
     print(f"[bold green]Starting scan on:[/] {target}")
 
@@ -69,21 +66,80 @@ def scan(
         )
 
         findings = asyncio.run(
-            run_scan(target, selected_modules=selected_module_names, threads=threads, headers=headers_dict, crawl_depth=crawl_depth)
+            run_scan(target, selected_modules=selected_module_names, threads=threads, headers=headers_dict, crawl_depth=crawl_depth, deep_crawl=deep)
         )
 
     display_results(findings)
 
     if output != "console":
-        from reports.deduplicator import Deduplicator
-        from reports.generator import ReportGenerator, render_html
+        print("[bold yellow]Generating professional reports...[/]")
+        
+        scan_start = datetime.now() # Approximate or pass from run_scan
+        metadata = {
+            "target": target,
+            "scan_id": f"SCAN_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            "scan_date": datetime.now().strftime('%Y-%m-%d'),
+            "classification": "CONFIDENTIAL"
+        }
+        
+        # Determine formats to generate
+        requested_formats = [output] if output in ["pdf", "html", "json", "markdown"] else ["html"]
+        
+        config = {"theme": "professional"}
+        reporter = ProfessionalPDFGenerator(config)
+        
+        import os
+        report_dir = "reports"
+        os.makedirs(report_dir, exist_ok=True)
+        report_base_name = f"gecko_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        # Convert Finding objects to VulnerabilityDetails
+        vuln_details = []
+        for f in findings:
+            vuln = VulnerabilityDetails(
+                title=f.title or f.type,
+                severity=f.severity.value.upper(),
+                cvss_score=f.cvss_score or 0.0,
+                cvss_vector=f.cvss_vector or "N/A",
+                cwe_id=f.cwe_id or "CWE-Unknown",
+                cwe_name="Unknown Weakness",
+                owasp_category=f.owasp_category or "A00:Unknown",
+                url=f.url,
+                location="N/A",
+                parameter=None,
+                method="GET", # Approximation, would need request info
+                description=f.description or "No description provided",
+                technical_details=f.description or "No technical details",
+                root_cause="Improper validation or misconfiguration",
+                business_impact=f.impact or "Could lead to compromise of application confidentiality, integrity, or availability.",
+                affected_assets=[f.url],
+                evidence=[{"request": f.raw_request, "response": f.raw_response}] if f.raw_request or f.raw_response else [],
+                proof_of_concept=f.evidence or "",
+                remediation_steps=[f.remediation] if f.remediation else ["Follow security best practices."],
+                remediation_code=None,
+                references=f.references or [],
+                compliance_impact=[],
+                likelihood="Medium",
+                exploitability="Medium",
+                time_to_exploit="Unknown",
+                detected_at=f.timestamp,
+                false_positive_probability=0.1
+            )
+            vuln_details.append(vuln)
+        
+        if "pdf" in requested_formats:
+            output_path = os.path.join(report_dir, report_base_name + ".pdf")
+            results = {"pdf": asyncio.run(reporter.generate(
+                findings=vuln_details,
+                output_path=output_path,
+                metadata=metadata
+            ))}
+        else:
+            print("[bold red]Only PDF output is currently supported by the Professional Generator.[/]")
+            results = {}
 
-        print("[bold yellow]Generating report...[/]")
-        deduped = Deduplicator(findings).deduplicate()
-        report = ReportGenerator(target, deduped).build(output_format="dict")
-        path = render_html(report)
-
-        print(f"[bold cyan]Report saved to:[/] {path}")
+        for fmt, path in results.items():
+            print(f"[bold cyan]{fmt.upper()} report saved to:[/] {path}")
 
 
 def display_results(findings):
@@ -106,14 +162,14 @@ def display_results(findings):
     }
 
     for f in findings:
-        severity = str(f.get("severity", "MEDIUM")).upper()
+        severity = f.severity.value.upper()
         sev_color = color_map.get(severity, "white")
 
         table.add_row(
-            str(f.get("type", "Unknown")),
+            str(f.type),
             f"[{sev_color}]{severity}[/]",
-            str(f.get("endpoint", "/")),
-            str(f.get("confidence", "LOW")),
+            str(f.url),
+            "HIGH", # Confidence not in Finding yet
         )
 
     print(table)

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Report - {{ metadata.target }}</title>
+    <style>{% include 'styles.css' %}</style>
+</head>
+<body>
+    <header class="report-header">
+        <div class="classification-banner {{ metadata.classification|lower }}">
+            {{ metadata.classification }}
+        </div>
+        <h1>Security Assessment Report</h1>
+        <p class="target">{{ metadata.target }}</p>
+        <div class="meta">
+            <span>Report ID: {{ metadata.scan_id }}</span>
+            <span>Generated: {{ generated_at }}</span>
+            <span>Gecko v{{ gecko_version }}</span>
+        </div>
+    </header>
+
+    <section class="executive-summary">
+        <h2>Executive Summary</h2>
+        {{ executive_summary|markdown|safe }}
+        
+        <div class="stats-grid">
+            <div class="stat-card critical">
+                <span class="count">{{ stats.by_severity.critical|default(0) }}</span>
+                <span class="label">Critical</span>
+            </div>
+            <div class="stat-card high">
+                <span class="count">{{ stats.by_severity.high|default(0) }}</span>
+                <span class="label">High</span>
+            </div>
+            <div class="stat-card medium">
+                <span class="count">{{ stats.by_severity.medium|default(0) }}</span>
+                <span class="label">Medium</span>
+            </div>
+            <div class="stat-card total">
+                <span class="count">{{ stats.total_findings }}</span>
+                <span class="label">Total Findings</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="findings">
+        <h2>Vulnerability Findings</h2>
+        
+        {% for severity in ['critical', 'high', 'medium', 'low', 'info'] %}
+            {% set sev_findings = by_severity.get(severity, []) %}
+            {% if sev_findings %}
+            <div class="severity-section {{ severity }}">
+                <h3>{{ severity|upper }} ({{ sev_findings|length }})</h3>
+                
+                {% for finding in sev_findings %}
+                <article class="finding" id="finding-{{ finding.id }}">
+                    <header class="finding-header">
+                        <h4>
+                            <span class="severity-badge {{ finding.severity.value }}">
+                                {{ finding.severity.value|upper }}
+                            </span>
+                            {{ finding.title }}
+                        </h4>
+                        <div class="finding-meta">
+                            {% if finding.cvss_score %}
+                                <span class="cvss">CVSS: {{ finding.cvss_score }}</span>
+                            {% endif %}
+                            {% if finding.cwe_id %}
+                                <span class="cwe">CWE: {{ finding.cwe_id }}</span>
+                            {% endif %}
+                            {% if finding.owasp_category %}
+                                <span class="owasp">OWASP: {{ finding.owasp_category }}</span>
+                            {% endif %}
+                        </div>
+                    </header>
+                    
+                    <div class="finding-body">
+                        <p><strong>URL:</strong> <code>{{ finding.url }}</code></p>
+                        
+                        <details>
+                            <summary>Description</summary>
+                            <p>{{ finding.description|markdown|safe }}</p>
+                        </details>
+                        
+                        {% if finding.evidence %}
+                        <details>
+                            <summary>Evidence</summary>
+                            <pre><code>{{ finding.evidence|syntax_highlight|safe }}</code></pre>
+                        </details>
+                        {% endif %}
+                        
+                        {% if finding.remediation %}
+                        <details open>
+                            <summary>Remediation</summary>
+                            <p>{{ finding.remediation|markdown|safe }}</p>
+                        </details>
+                        {% endif %}
+                        
+                        {% if finding.references %}
+                        <p><strong>References:</strong></p>
+                        <ul>
+                        {% for ref in finding.references %}
+                            <li><a href="{{ ref }}" target="_blank">{{ ref }}</a></li>
+                        {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endfor %}
+    </section>
+
+    <footer class="report-footer">
+        <p>Generated by Gecko Apocalypse Engine v{{ gecko_version }}</p>
+        <p class="disclaimer">For authorized security testing only. Unauthorized use is prohibited.</p>
+    </footer>
+</body>
+</html>
